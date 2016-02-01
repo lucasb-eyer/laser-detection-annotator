@@ -373,7 +373,7 @@ if __name__ == "__main__":
     print("Chunking into batches...") ; sys.stdout.flush()
     batches = []
     for bstart in np.arange(tickskip, len(seqs)-tickskip, batchsize*(batchskip+1)):
-        batches.append(np.arange(bstart, bstart+batchsize-1-tickskip, tickskip))
+        batches.append(np.arange(bstart, min(bstart+batchsize-1, len(seqs)), tickskip))
     print("Created {} batches".format(len(batches))) ; sys.stdout.flush()
 
     # Determine the view-space.
