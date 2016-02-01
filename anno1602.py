@@ -207,6 +207,12 @@ class Anno1602:
     def replot(self, newbatch=True):
         batch = self.batches[self.b]
 
+        # This doesn't really belong here, but meh, it needs to happen as soon as a new batch is opened, so here.
+        if self.wheelchairs[self.b][self.i] is None:
+            self.wheelchairs[self.b][self.i] = []
+        if self.walkingaids[self.b][self.i] is None:
+            self.walkingaids[self.b][self.i] = []
+
         self.axlaser.clear()
         self.axlaser.scatter(*scan_to_xy(self.scans[batch[self.i]], self.laser_thresh), s=10, color='#E24A33', alpha=0.5, lw=0)
 
@@ -242,11 +248,6 @@ class Anno1602:
     def click(self, e):
         if self._ignore(e):
             return
-
-        if self.wheelchairs[self.b][self.i] is None:
-            self.wheelchairs[self.b][self.i] = []
-        if self.walkingaids[self.b][self.i] is None:
-            self.walkingaids[self.b][self.i] = []
 
         if e.button == 1:
             self.wheelchairs[self.b][self.i].append((e.xdata, e.ydata))
