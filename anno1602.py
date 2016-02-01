@@ -208,10 +208,13 @@ class Anno1602:
         batch = self.batches[self.b]
 
         # This doesn't really belong here, but meh, it needs to happen as soon as a new batch is opened, so here.
-        if self.wheelchairs[self.b][self.i] is None:
-            self.wheelchairs[self.b][self.i] = []
-        if self.walkingaids[self.b][self.i] is None:
-            self.walkingaids[self.b][self.i] = []
+        # We want to save a batch, even empty, as soon as it has been seen.
+        if newbatch:
+            for i, _ in enumerate(self.batches[self.b]):
+                if self.wheelchairs[self.b][i] is None:
+                    self.wheelchairs[self.b][i] = []
+                if self.walkingaids[self.b][i] is None:
+                    self.walkingaids[self.b][i] = []
 
         self.axlaser.clear()
         self.axlaser.scatter(*scan_to_xy(self.scans[batch[self.i]], self.laser_thresh), s=10, color='#E24A33', alpha=0.5, lw=0)
