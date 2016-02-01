@@ -116,6 +116,7 @@ class Anno1602:
         self.seqs = seqs
         self.b = 0
         self.i = 0
+        self.laser_thresh = laser_thresh
         self.circrad = circrad
         self.xlim = xlim
         self.ylim = ylim
