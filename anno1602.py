@@ -38,6 +38,10 @@ cameraFoV = 58
 # The size of the camera is needed for pre-generating the image-axes in the plot for efficiency.
 camsize = (480, 640)
 
+# Radius of the circle around the cursor, in data-units.
+# From https://thesegamesiplay.files.wordpress.com/2015/03/wheelchair.jpg
+circrad = 1.22/2
+
 # TODO: make the types of labels configurable? Although, does it even matter?
 
 # End of settings
@@ -106,13 +110,13 @@ def imload(name, *seqs):
 
 
 class Anno1602:
-    def __init__(self, batches, scans, seqs, laser_thresh=laser_cutoff, xlim=None, ylim=None):
+    def __init__(self, batches, scans, seqs, laser_thresh=laser_cutoff, circrad=circrad, xlim=None, ylim=None):
         self.batches = batches
         self.scans = scans
         self.seqs = seqs
         self.b = 0
         self.i = 0
-
+        self.circrad = circrad
         self.xlim = xlim
         self.ylim = ylim
 
@@ -130,7 +134,6 @@ class Anno1602:
         axpres.axis('off')
         axnext.axis('off')
 
-        self.circrad = 1.22/2  # From https://thesegamesiplay.files.wordpress.com/2015/03/wheelchair.jpg
         self.circ = MouseCircle(self.axlaser, radius=self.circrad, linewidth=1, fill=False)
 
         # Configure interaction
