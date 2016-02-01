@@ -135,6 +135,8 @@ class Anno1602:
         axpres.axis('off')
         axnext.axis('off')
 
+        gs.tight_layout(self.fig)  # Make better use of the space we have.
+
         self.circ = MouseCircle(self.axlaser, radius=self.circrad, linewidth=1, fill=False)
 
         # Configure interaction
