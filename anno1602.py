@@ -71,7 +71,13 @@ if len(sys.argv) < 2:
     print("relative to {}".format(basedir))
     sys.exit(1)
 
-name = sys.argv[1]
+# Very crude, not robust argv handling.
+if sys.argv[1] in ("--dry-run", "-n"):
+    dryrun = True
+    name = sys.argv[2]
+else:
+    dryrun = False
+    name = sys.argv[1]
 
 
 def mkdirs(fname):
@@ -110,7 +116,7 @@ def imload(name, *seqs):
 
 
 class Anno1602:
-    def __init__(self, batches, scans, seqs, laser_thresh=laser_cutoff, circrad=circrad, xlim=None, ylim=None):
+    def __init__(self, batches, scans, seqs, laser_thresh=laser_cutoff, circrad=circrad, xlim=None, ylim=None, dryrun=False):
         self.batches = batches
         self.scans = scans
         self.seqs = seqs
@@ -120,6 +126,7 @@ class Anno1602:
         self.circrad = circrad
         self.xlim = xlim
         self.ylim = ylim
+        self.dryrun = dryrun
 
         # Build the figure and the axes.
         self.fig = plt.figure(figsize=(10,10))
@@ -152,6 +159,9 @@ class Anno1602:
         self.replot()
 
     def save(self):
+        if self.dryrun:
+            return
+
         mkdirs(savedir + name)
 
         def _doit(f, data):
@@ -366,7 +376,7 @@ if __name__ == "__main__":
     xr, yr = scan_to_xy(np.full(scans.shape[1], laser_cutoff, dtype=np.float32))
 
     print("Starting annotator...") ; sys.stdout.flush()
-    anno = Anno1602(batches, scans, seqs, laser_cutoff, xlim=(min(xr), max(xr)), ylim=(min(yr), max(yr)))
+    anno = Anno1602(batches, scans, seqs, laser_cutoff, xlim=(min(xr), max(xr)), ylim=(min(yr), max(yr)), dryrun=dryrun)
 
     t0 = time.time()
     anno.replot()
