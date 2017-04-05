@@ -69,15 +69,27 @@ if len(sys.argv) < 2:
     print("Usage: {} relative/path/to_file.bag".format(sys.argv[0]))
     print()
     print("relative to {}".format(basedir))
+    print("Too perform a dry run withint savinr results use --dry-run or -n.")
+    print("Too change into walking person annotation mode use --person or -p.")
     sys.exit(1)
 
 # Very crude, not robust argv handling.
-if sys.argv[1] in ("--dry-run", "-n"):
-    dryrun = True
-    name = sys.argv[2]
-else:
-    dryrun = False
-    name = sys.argv[1]
+name = None
+dryrun = False
+person_mode = False
+
+for arg in sys.argv[1:]:
+    if arg in ("--dry-run", "-n"):
+        dryrun = True
+    elif arg in ("--person", "-p"):
+        person_mode = True
+    else:
+        if name is None:
+            name = arg
+        else:
+            print("Cannot parse arguments, please only specify a single path to the data, and/or flags for dry-run or person only annotations.")
+            sys.exit(1)
+
 
 
 def mkdirs(fname):
@@ -116,7 +128,7 @@ def imload(name, *seqs):
 
 
 class Anno1602:
-    def __init__(self, batches, scans, seqs, laser_thresh=laser_cutoff, circrad=circrad, xlim=None, ylim=None, dryrun=False):
+    def __init__(self, batches, scans, seqs, laser_thresh=laser_cutoff, circrad=circrad, xlim=None, ylim=None, dryrun=False, person_mode=False):
         self.batches = batches
         self.scans = scans
         self.seqs = seqs
@@ -127,6 +139,7 @@ class Anno1602:
         self.xlim = xlim
         self.ylim = ylim
         self.dryrun = dryrun
+        self.person_mode = person_mode
 
         # Build the figure and the axes.
         self.fig = plt.figure(figsize=(10,10))
@@ -154,6 +167,7 @@ class Anno1602:
         # Labels!!
         self.wheelchairs = [[None for i in b] for b in batches]
         self.walkingaids = [[None for i in b] for b in batches]
+        self.persons =     [[None for i in b] for b in batches]
         self.load()
 
         self.replot()
@@ -173,11 +187,16 @@ class Anno1602:
                     f.write(','.join('[{},{}]'.format(*xy_to_rphi(x,y)) for x,y in seq))
                     f.write(']\n')
 
-        with open(savedir + name + ".wc", "w+") as f:
-            _doit(f, self.wheelchairs)
+        if self.person_mode:
+            with open(savedir + name + ".wp", "w+") as f:
+                _doit(f, self.persons)
 
-        with open(savedir + name + ".wa", "w+") as f:
-            _doit(f, self.walkingaids)
+        else:
+            with open(savedir + name + ".wc", "w+") as f:
+                _doit(f, self.wheelchairs)
+
+            with open(savedir + name + ".wa", "w+") as f:
+                _doit(f, self.walkingaids)
 
     def load(self):
         def _doit(f, whereto):
@@ -201,6 +220,9 @@ class Anno1602:
 
             with open(savedir + name + ".wa", "r") as f:
                 _doit(f, self.walkingaids)
+
+            with open(savedir + name + ".wp", "r") as f:
+                _doit(f, self.persons)
         except FileNotFoundError:
             pass  # That's ok, just means no annotations yet.
 
@@ -215,6 +237,8 @@ class Anno1602:
                     self.wheelchairs[self.b][i] = []
                 if self.walkingaids[self.b][i] is None:
                     self.walkingaids[self.b][i] = []
+                if self.persons[self.b][i] is None:
+                    self.persons[self.b][i] = []
 
         self.axlaser.clear()
         self.axlaser.scatter(*scan_to_xy(self.scans[batch[self.i]], self.laser_thresh), s=10, color='#E24A33', alpha=0.5, lw=0)
@@ -227,6 +251,8 @@ class Anno1602:
             self.axlaser.scatter(x, y, marker='+', s=50, color='#348ABD')
         for x,y in self.walkingaids[self.b][self.i] or []:
             self.axlaser.scatter(x, y, marker='x', s=50, color='#988ED5')
+        for x,y in self.persons[self.b][self.i] or []:
+            self.axlaser.scatter(x, y, marker='o', s=50, color='#50B948', facecolors='none')
 
         # Fix aspect ratio and visible region.
         if self.xlim is not None:
@@ -252,12 +278,18 @@ class Anno1602:
         if self._ignore(e):
             return
 
-        if e.button == 1:
-            self.wheelchairs[self.b][self.i].append((e.xdata, e.ydata))
-        elif e.button == 3:
-            self.walkingaids[self.b][self.i].append((e.xdata, e.ydata))
-        elif e.button == 2:
-            self._clear(e.xdata, e.ydata)
+        if self.person_mode:
+            if e.button == 1:
+                self.persons[self.b][self.i].append((e.xdata, e.ydata))
+            elif e.button == 2:
+                self._clear(e.xdata, e.ydata)
+        else:
+            if e.button == 1:
+                self.wheelchairs[self.b][self.i].append((e.xdata, e.ydata))
+            elif e.button == 3:
+                self.walkingaids[self.b][self.i].append((e.xdata, e.ydata))
+            elif e.button == 2:
+                self._clear(e.xdata, e.ydata)
 
         self.replot(newbatch=False)
 
@@ -318,8 +350,11 @@ class Anno1602:
 
     def _clear(self, mx, my):
       try:
-        self.wheelchairs[self.b][self.i] = [(x,y) for x,y in self.wheelchairs[self.b][self.i] if np.hypot(mx-x, my-y) > self.circrad]
-        self.walkingaids[self.b][self.i] = [(x,y) for x,y in self.walkingaids[self.b][self.i] if np.hypot(mx-x, my-y) > self.circrad]
+        if self.person_mode:
+            self.persons[self.b][self.i]     = [(x,y) for x,y in self.persons[self.b][self.i] if np.hypot(mx-x, my-y) > self.circrad]
+        else:
+            self.wheelchairs[self.b][self.i] = [(x,y) for x,y in self.wheelchairs[self.b][self.i] if np.hypot(mx-x, my-y) > self.circrad]
+            self.walkingaids[self.b][self.i] = [(x,y) for x,y in self.walkingaids[self.b][self.i] if np.hypot(mx-x, my-y) > self.circrad]
       except TypeError:
           import pdb ; pdb.set_trace() # THERE IS A RARE BUG HERE. CALL LUCAS
 
@@ -380,7 +415,8 @@ if __name__ == "__main__":
     xr, yr = scan_to_xy(np.full(scans.shape[1], laser_cutoff, dtype=np.float32))
 
     print("Starting annotator...") ; sys.stdout.flush()
-    anno = Anno1602(batches, scans, seqs, laser_cutoff, xlim=(min(xr), max(xr)), ylim=(min(yr), max(yr)), dryrun=dryrun)
+    print("Person mode: {}, Dry run: {}".format(person_mode, dryrun)) ; sys.stdout.flush()
+    anno = Anno1602(batches, scans, seqs, laser_cutoff, xlim=(min(xr), max(xr)), ylim=(min(yr), max(yr)), dryrun=dryrun, person_mode=person_mode)
 
     t0 = time.time()
     anno.replot()
