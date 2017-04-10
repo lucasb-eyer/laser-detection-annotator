@@ -69,8 +69,8 @@ if len(sys.argv) < 2:
     print("Usage: {} relative/path/to_file.bag".format(sys.argv[0]))
     print()
     print("relative to {}".format(basedir))
-    print("Too perform a dry run withint savinr results use --dry-run or -n.")
-    print("Too change into walking person annotation mode use --person or -p.")
+    print("To perform a dry run without saving results use --dry-run or -n.")
+    print("To change into person annotation mode use --person or -p.")
     sys.exit(1)
 
 # Very crude, not robust argv handling.
@@ -87,7 +87,7 @@ for arg in sys.argv[1:]:
         if name is None:
             name = arg
         else:
-            print("Cannot parse arguments, please only specify a single path to the data, and/or flags for dry-run or person only annotations.")
+            print("Cannot parse arguments, please only specify a single path to the data, and/or flags for dry run or person only annotations.")
             sys.exit(1)
 
 
