@@ -265,12 +265,13 @@ class Anno1602:
         self.axlaser.plot([0, -self.laser_thresh*np.sin(cameraFoV/2)], [0, self.laser_thresh*np.cos(cameraFoV/2)], 'k:')
         self.axlaser.plot([0,  self.laser_thresh*np.sin(cameraFoV/2)], [0, self.laser_thresh*np.cos(cameraFoV/2)], 'k:')
 
+        # Jitter size a little so we can easily see multiple click mistakes.
         for x,y in self.wheelchairs[self.b][self.i] or []:
-            self.axlaser.scatter(x, y, marker='+', s=50, color='#348ABD')
+            self.axlaser.scatter(x, y, marker='+', s=np.random.uniform(40,60), color='#348ABD')
         for x,y in self.walkingaids[self.b][self.i] or []:
-            self.axlaser.scatter(x, y, marker='x', s=50, color='#988ED5')
+            self.axlaser.scatter(x, y, marker='x', s=np.random.uniform(40,60), color='#988ED5')
         for x,y in self.persons[self.b][self.i] or []:
-            self.axlaser.scatter(x, y, marker='o', s=50, color='#50B948', facecolors='none')
+            self.axlaser.scatter(x, y, marker='o', s=np.random.uniform(15,100), color='#50B948', facecolors='none')
 
         # Fix aspect ratio and visible region.
         if self.xlim is not None:
