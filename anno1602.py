@@ -58,9 +58,25 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Cursor, AxesWidget
 
 try:
-    from cv2 import imread
+    import cv2
+    def imread(fname):
+        img = cv2.imread(fname)
+        if img is not None:
+            img = img[:,:,::-1]  # BGR to RGB
+        return img
 except ImportError:
-    from matplotlib.image import imread
+    # Python 2/3 compatibility
+    try:
+        FileNotFoundError
+    except NameError:
+        FileNotFoundError = IOError
+
+    from matplotlib.image import imread as mpl_imread
+    def imread(fname):
+        try:
+            return mpl_imread(fname)
+        except FileNotFoundError:
+            return None
 
 laserFoV = np.radians(laserFoV)
 cameraFoV = np.radians(cameraFoV)
@@ -122,7 +138,7 @@ def imload(name, *seqs):
         fname = "{}{}_dir/{}.jpg".format(basedir, name, int(s))
         im = imread(fname)
         if im is not None:
-            return im[:,:,::-1]
+            return im
     print("WARNING: Couldn't find any of " + ' ; '.join(map(str, map(int, seqs))))
     return np.zeros(camsize + (3,), dtype=np.uint8)
 
