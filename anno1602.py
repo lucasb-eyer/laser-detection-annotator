@@ -186,6 +186,8 @@ class Anno1602:
         self.persons =     [[None for i in b] for b in batches]
         self.load()
 
+        # The pause is needed for the OSX backend.
+        plt.pause(0.0001)
         self.replot()
 
     def save(self):
@@ -410,7 +412,7 @@ class MouseCircle(AxesWidget):
         if self.background is not None:
            self.canvas.restore_region(self.background)
         self.ax.draw_artist(self.circ)
-        self.canvas.blit()  # Note: not passing `self.ax.bbox` as else the other axes stay old...
+        self.canvas.blit(bbox=None)  # Note: not passing `self.ax.bbox` as else the other axes stay old...
 
 
 if __name__ == "__main__":
