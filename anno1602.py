@@ -369,7 +369,10 @@ class Anno1602:
 
     def _prevb(self):
         self.save()
-        self.b = max(0, self.b-1)
+        if self.b == 0:
+            self.b = len(self.batches)-1
+        else:
+            self.b = self.b-1
         self.i = 0
 
     def _clear(self, mx, my):
