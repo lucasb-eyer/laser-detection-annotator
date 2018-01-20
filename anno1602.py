@@ -297,6 +297,11 @@ class Anno1602:
         if self._ignore(e):
             return
 
+        # In some rare cases, there is no xdata or ydata (not sure when exactly)
+        # so we skip them instea of adding them to the list and causing bugs later on!
+        if e.xdata is None or e.ydata is None:
+            return
+
         if self.person_mode:
             if e.button == 1:
                 self.persons[self.b][self.i].append((e.xdata, e.ydata))
